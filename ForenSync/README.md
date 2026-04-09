@@ -1,35 +1,42 @@
-# ForenSync MVP
+# ForenSync Pro — Forensic Timeline Automation
 
-ForenSync is a minimum viable forensic timeline builder for hackathon use. It scans a set of digital artefacts, extracts timestamped events, normalises them to UTC, deduplicates overlapping entries, and generates an interactive HTML timeline plus JSON evidence export.
+ForenSync Pro is a high-performance forensic timeline automation tool designed for cyber-investigators. It transforms fragmented digital artefacts into a unified, normalized, and AI-narrated timeline within seconds.
+
+## Key Features
+
+- **Multi-Source Aggregation**: Ingest EVTX, Browser History, Registry Exports, and Prefetch files.
+- **Unified UTC Timeline**: Strict normalization to UTC across all artefacts to eliminate manual correlation.
+- **AI Narrative Engine**: Automatically generates plain-English investigative stories from raw log data.
+- **Forensic Anomaly Detection**: Heuristic-based detection of anti-forensic activity (log clearing), lateral movement tools, and suspicious account manipulation.
+- **Interactive Dashboard**: A premium React-based investigator dashboard with density charting, advanced filtering, and detailed provenance viewing.
+
+## Architecture
+
+- **Backend**: FastAPI (Python) with specialized forensic parsers.
+- **Frontend**: Vite + React + Vanilla CSS (Premium Cyber Theme).
+
+## Running the Prototype
+
+### 1. Start the Backend
+```bash
+# From the root directory
+pip install -r requirements.txt
+python app.py
+```
+
+### 2. Start the Frontend
+```bash
+# From the frontend directory
+npm install
+npm run dev
+```
 
 ## Supported Inputs
 
-- Windows Event Logs in `.evtx` format
-- Browser history SQLite databases in `.db`, `.sqlite`, `.sqlite3`, and `.history`
-- Registry exports in `.reg`
-- Prefetch files in `.pf`
+- **Windows Event Logs**: `.evtx` (Record-level parsing via python-evtx)
+- **Browser History**: SQLite databases (Chromium, Firefox)
+- **Registry**: `.reg` export files
+- **Prefetch**: `.pf` binary files (Deep execution array recovery)
 
-## MVP Behaviours
-
-- Normalises timestamps to UTC
-- Deduplicates near-identical events from overlapping sources
-- Generates:
-  - `timeline.json`
-  - `timeline.html`
-  - `case_summary.md`
-- Allows investigator notes and browser-side evidence export from the timeline UI
-
-## Run
-
-```bash
-python main.py --input path/to/artefacts --output-dir output --case-name "Demo Case"
-```
-
-Then open the generated `output/timeline.html` in a browser.
-
-## Notes
-
-- EVTX record-level parsing uses the optional `python-evtx` package when available.
-- Without that dependency, EVTX files still appear in the case output as discovered artefacts with metadata-only events.
-- Registry exports use the export file modification time as the event timestamp in this MVP.
-- Prefetch parsing currently uses file-system timestamps as execution hints rather than deep binary parsing.
+---
+*Built for the 36-Hour Hackathon by Team Ransomwhere?*

@@ -10,6 +10,7 @@ from engine.models import TimelineEvent
 from parsers.browser_parser import parse_browser_history
 from parsers.event_log_parser import parse_event_log
 from parsers.file_system_parser import parse_prefetch_file, parse_registry_export
+from parsers.generic_parser import parse_csv_file, parse_log_file
 
 
 def discover_files(input_paths: Sequence[Path]) -> list[Path]:
@@ -49,6 +50,14 @@ def collect_artifacts(input_paths: Sequence[Path]) -> tuple[list[TimelineEvent],
                 warnings.extend(parser_warnings)
             elif suffix == ".pf":
                 parsed_events, parser_warnings = parse_prefetch_file(file_path)
+                events.extend(parsed_events)
+                warnings.extend(parser_warnings)
+            elif suffix == ".csv":
+                parsed_events, parser_warnings = parse_csv_file(file_path)
+                events.extend(parsed_events)
+                warnings.extend(parser_warnings)
+            elif suffix == ".log" or suffix == ".txt":
+                parsed_events, parser_warnings = parse_log_file(file_path)
                 events.extend(parsed_events)
                 warnings.extend(parser_warnings)
             else:
