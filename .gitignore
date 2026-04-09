@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+
+# ForenSync specific
+ForenSync/uploads/
+ForenSync/demo_output/
+ForenSync/demo_output_upgraded/
+ForenSync/sample_case/
+
+# OS files
+.DS_Store
+Thumbs.db
