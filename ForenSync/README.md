@@ -1,4 +1,5 @@
-# ForenSync Pro — Forensic Timeline Automation
+# ForenSync Pro - Forensic Timeline Automation
+# By Team RansomWhere?
 
 ForenSync Pro is a high-performance forensic timeline automation tool designed for cyber-investigators. It transforms fragmented digital artefacts into a unified, normalized, and AI-narrated timeline within seconds.
 
