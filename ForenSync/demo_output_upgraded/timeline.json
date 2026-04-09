@@ -1,0 +1,222 @@
+[
+  {
+    "event_id": "a0d4623e1c6bf5d0",
+    "timestamp_utc": "2026-04-09T06:47:04Z",
+    "timestamp_unix": 1775717224,
+    "source_type": "prefetch",
+    "artifact_type": "prefetch",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\APP.EXE-12345678.pf",
+    "title": "Prefetch modified for APP.EXE",
+    "description": "Prefetch file modification time used as an execution hint.",
+    "dedupe_key": "APP.EXE|modified",
+    "parser": "prefetch_filesystem_fallback",
+    "confidence": 0.5,
+    "fidelity_rank": 20,
+    "tags": [
+      "prefetch",
+      "filesystem_time"
+    ],
+    "metadata": {
+      "timestamp_type": "modified",
+      "executable": "APP.EXE"
+    },
+    "raw_timestamp": "file_mtime",
+    "merged_event_ids": [
+      "a0d4623e1c6bf5d0"
+    ],
+    "provenance": [
+      {
+        "event_id": "a0d4623e1c6bf5d0",
+        "source_type": "prefetch",
+        "artifact_type": "prefetch",
+        "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\APP.EXE-12345678.pf",
+        "parser": "prefetch_filesystem_fallback",
+        "confidence": 0.5
+      }
+    ]
+  },
+  {
+    "event_id": "6ea4135b4903de0e",
+    "timestamp_utc": "2026-04-09T06:47:04Z",
+    "timestamp_unix": 1775717224,
+    "source_type": "prefetch",
+    "artifact_type": "prefetch",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\APP.EXE-12345678.pf",
+    "title": "Prefetch created for APP.EXE",
+    "description": "Prefetch artefact discovered on disk.",
+    "dedupe_key": "APP.EXE|created",
+    "parser": "prefetch_filesystem_fallback",
+    "confidence": 0.35,
+    "fidelity_rank": 15,
+    "tags": [
+      "prefetch",
+      "filesystem_time"
+    ],
+    "metadata": {
+      "timestamp_type": "created",
+      "executable": "APP.EXE"
+    },
+    "raw_timestamp": "file_ctime",
+    "merged_event_ids": [
+      "6ea4135b4903de0e"
+    ],
+    "provenance": [
+      {
+        "event_id": "6ea4135b4903de0e",
+        "source_type": "prefetch",
+        "artifact_type": "prefetch",
+        "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\APP.EXE-12345678.pf",
+        "parser": "prefetch_filesystem_fallback",
+        "confidence": 0.35
+      }
+    ]
+  },
+  {
+    "event_id": "406dcddc81dac552",
+    "timestamp_utc": "2026-04-09T06:47:04Z",
+    "timestamp_unix": 1775717224,
+    "source_type": "registry",
+    "artifact_type": "reg_export",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\sample.reg",
+    "title": "Registry value exported: CaseId",
+    "description": "Value observed under HKEY_CURRENT_USER\\\\Software\\\\ForenSync: \"demo-001\"",
+    "dedupe_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync|CaseId",
+    "parser": "reg_export_parser",
+    "confidence": 0.45,
+    "fidelity_rank": 30,
+    "tags": [
+      "registry",
+      "value"
+    ],
+    "metadata": {
+      "registry_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync",
+      "value_name": "CaseId",
+      "value_preview": "\"demo-001\"",
+      "line_number": 4
+    },
+    "raw_timestamp": "file_mtime",
+    "merged_event_ids": [
+      "406dcddc81dac552"
+    ],
+    "provenance": [
+      {
+        "event_id": "406dcddc81dac552",
+        "source_type": "registry",
+        "artifact_type": "reg_export",
+        "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\sample.reg",
+        "parser": "reg_export_parser",
+        "confidence": 0.45
+      }
+    ]
+  },
+  {
+    "event_id": "110cb29b24b7e710",
+    "timestamp_utc": "2026-04-09T06:47:04Z",
+    "timestamp_unix": 1775717224,
+    "source_type": "registry",
+    "artifact_type": "reg_export",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\sample.reg",
+    "title": "Registry value exported: Status",
+    "description": "Value observed under HKEY_CURRENT_USER\\\\Software\\\\ForenSync: \"Collected\"",
+    "dedupe_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync|Status",
+    "parser": "reg_export_parser",
+    "confidence": 0.45,
+    "fidelity_rank": 30,
+    "tags": [
+      "registry",
+      "value"
+    ],
+    "metadata": {
+      "registry_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync",
+      "value_name": "Status",
+      "value_preview": "\"Collected\"",
+      "line_number": 5
+    },
+    "raw_timestamp": "file_mtime",
+    "merged_event_ids": [
+      "110cb29b24b7e710"
+    ],
+    "provenance": [
+      {
+        "event_id": "110cb29b24b7e710",
+        "source_type": "registry",
+        "artifact_type": "reg_export",
+        "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\sample.reg",
+        "parser": "reg_export_parser",
+        "confidence": 0.45
+      }
+    ]
+  },
+  {
+    "event_id": "065f28a37bd9f062",
+    "timestamp_utc": "2026-04-09T06:47:04Z",
+    "timestamp_unix": 1775717224,
+    "source_type": "registry",
+    "artifact_type": "reg_export",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\sample.reg",
+    "title": "Registry key exported",
+    "description": "Registry key observed: HKEY_CURRENT_USER\\\\Software\\\\ForenSync",
+    "dedupe_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync",
+    "parser": "reg_export_parser",
+    "confidence": 0.4,
+    "fidelity_rank": 25,
+    "tags": [
+      "registry",
+      "key"
+    ],
+    "metadata": {
+      "registry_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync",
+      "line_number": 3
+    },
+    "raw_timestamp": "file_mtime",
+    "merged_event_ids": [
+      "065f28a37bd9f062"
+    ],
+    "provenance": [
+      {
+        "event_id": "065f28a37bd9f062",
+        "source_type": "registry",
+        "artifact_type": "reg_export",
+        "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\sample.reg",
+        "parser": "reg_export_parser",
+        "confidence": 0.4
+      }
+    ]
+  },
+  {
+    "event_id": "4914726334af85c9",
+    "timestamp_utc": "2026-04-09T09:55:11Z",
+    "timestamp_unix": 1775728511,
+    "source_type": "prefetch",
+    "artifact_type": "prefetch",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\APP.EXE-12345678.pf",
+    "title": "Prefetch accessed for APP.EXE",
+    "description": "Prefetch file access time kept as an investigator hint.",
+    "dedupe_key": "APP.EXE|accessed",
+    "parser": "prefetch_filesystem_fallback",
+    "confidence": 0.2,
+    "fidelity_rank": 10,
+    "tags": [
+      "prefetch",
+      "filesystem_time"
+    ],
+    "metadata": {
+      "timestamp_type": "accessed",
+      "executable": "APP.EXE"
+    },
+    "raw_timestamp": "file_atime",
+    "merged_event_ids": [
+      "4914726334af85c9"
+    ],
+    "provenance": [
+      {
+        "event_id": "4914726334af85c9",
+        "source_type": "prefetch",
+        "artifact_type": "prefetch",
+        "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\APP.EXE-12345678.pf",
+        "parser": "prefetch_filesystem_fallback",
+        "confidence": 0.2
+      }
+    ]
+  }
+]

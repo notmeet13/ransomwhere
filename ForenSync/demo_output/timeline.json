@@ -1,0 +1,73 @@
+[
+  {
+    "timestamp_utc": "2026-04-09T06:47:04Z",
+    "source_type": "prefetch",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\APP.EXE-12345678.pf",
+    "title": "Prefetch created for APP.EXE",
+    "description": "Prefetch artefact discovered on disk.",
+    "dedupe_key": "APP.EXE-12345678.pf:created",
+    "metadata": {
+      "timestamp_type": "created",
+      "executable": "APP.EXE"
+    }
+  },
+  {
+    "timestamp_utc": "2026-04-09T06:47:04Z",
+    "source_type": "prefetch",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\APP.EXE-12345678.pf",
+    "title": "Prefetch modified for APP.EXE",
+    "description": "Prefetch file modification time used as execution proxy.",
+    "dedupe_key": "APP.EXE-12345678.pf:modified",
+    "metadata": {
+      "timestamp_type": "modified",
+      "executable": "APP.EXE"
+    }
+  },
+  {
+    "timestamp_utc": "2026-04-09T06:47:04Z",
+    "source_type": "registry",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\sample.reg",
+    "title": "Registry key exported",
+    "description": "Registry key observed: HKEY_CURRENT_USER\\\\Software\\\\ForenSync",
+    "dedupe_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync:3",
+    "metadata": {
+      "registry_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync"
+    }
+  },
+  {
+    "timestamp_utc": "2026-04-09T06:47:04Z",
+    "source_type": "registry",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\sample.reg",
+    "title": "Registry value exported: CaseId",
+    "description": "Value observed under HKEY_CURRENT_USER\\\\Software\\\\ForenSync: \"demo-001\"",
+    "dedupe_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync:\"CaseId\":4",
+    "metadata": {
+      "registry_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync",
+      "value_name": "\"CaseId\""
+    }
+  },
+  {
+    "timestamp_utc": "2026-04-09T06:47:04Z",
+    "source_type": "registry",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\sample.reg",
+    "title": "Registry value exported: Status",
+    "description": "Value observed under HKEY_CURRENT_USER\\\\Software\\\\ForenSync: \"Collected\"",
+    "dedupe_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync:\"Status\":5",
+    "metadata": {
+      "registry_key": "HKEY_CURRENT_USER\\\\Software\\\\ForenSync",
+      "value_name": "\"Status\""
+    }
+  },
+  {
+    "timestamp_utc": "2026-04-09T07:53:16Z",
+    "source_type": "prefetch",
+    "source_file": "D:\\VsCode\\HackAThon\\RansomeWhere-\\ForenSync\\sample_case\\APP.EXE-12345678.pf",
+    "title": "Prefetch accessed for APP.EXE",
+    "description": "Prefetch file access time used as an investigator hint.",
+    "dedupe_key": "APP.EXE-12345678.pf:accessed",
+    "metadata": {
+      "timestamp_type": "accessed",
+      "executable": "APP.EXE"
+    }
+  }
+]
