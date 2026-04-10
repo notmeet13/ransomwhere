@@ -5,6 +5,7 @@ import json
 import shutil
 import tarfile
 import zipfile
+import tempfile
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Iterable, Sequence
@@ -139,7 +140,7 @@ def _expand_input_files(
 def collect_artifacts(input_paths: Sequence[Path]) -> tuple[list[TimelineEvent], list[str], list[str]]:
     events: list[TimelineEvent] = []
     warnings: list[str] = []
-    extract_root = (Path.cwd() / ".forensync_archives" / uuid4().hex).resolve()
+    extract_root = Path(tempfile.gettempdir()) / "forensync_extracts" / uuid4().hex
     extract_root.mkdir(parents=True, exist_ok=True)
     try:
         files = discover_files(input_paths)
@@ -182,7 +183,6 @@ def collect_artifacts(input_paths: Sequence[Path]) -> tuple[list[TimelineEvent],
                 warnings.append(f"Failed to parse {display_path}: {exc}")
     finally:
         shutil.rmtree(extract_root, ignore_errors=True)
-        shutil.rmtree(extract_root.parent, ignore_errors=True)
 
     events.sort(key=lambda item: (item.timestamp_unix, item.timestamp_utc, item.source_type))
     return events, warnings, scanned
