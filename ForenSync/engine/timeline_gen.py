@@ -61,15 +61,16 @@ def _extract_archive(
     target_dir = extract_root / f"archive_{uuid4().hex}"
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    if archive_name.endswith(".zip"):
-        try:
+    try:
+        if archive_name.endswith(".zip"):
             with zipfile.ZipFile(archive_path) as archive:
-                for member in archive.infolist():
-                    if member.is_dir():
-                        continue
+                members = [m for m in archive.infolist() if not m.is_dir()]
+                if not members:
+                    warnings.append(f"Archive {archive_path.name} appears to be empty or contains only directories.")
+                for member in members:
                     destination = _safe_member_destination(target_dir, member.filename)
                     if destination is None:
-                        warnings.append(f"Skipped unsafe ZIP member '{member.filename}' in {archive_path}.")
+                        warnings.append(f"Skipped unsafe ZIP member '{member.filename}' in {archive_path.name}.")
                         continue
                     destination.parent.mkdir(parents=True, exist_ok=True)
                     try:
@@ -77,35 +78,34 @@ def _extract_archive(
                             shutil.copyfileobj(source, sink)
                         extracted.append((destination, member.filename))
                     except Exception as exc:
-                        warnings.append(f"Failed to extract ZIP member '{member.filename}' in {archive_path}: {exc}")
-        except Exception as exc:
-            warnings.append(f"Failed to extract archive {archive_path}: {exc}")
-        return extracted, warnings
-
-    try:
-        with tarfile.open(archive_path, mode="r:*") as archive:
-            for member in archive.getmembers():
-                if not member.isfile():
-                    continue
-                if member.issym() or member.islnk():
-                    warnings.append(f"Skipped TAR link member '{member.name}' in {archive_path}.")
-                    continue
-                destination = _safe_member_destination(target_dir, member.name)
-                if destination is None:
-                    warnings.append(f"Skipped unsafe TAR member '{member.name}' in {archive_path}.")
-                    continue
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                source = archive.extractfile(member)
-                if source is None:
-                    continue
-                try:
-                    with source, destination.open("wb") as sink:
-                        shutil.copyfileobj(source, sink)
-                    extracted.append((destination, member.name))
-                except Exception as exc:
-                    warnings.append(f"Failed to extract TAR member '{member.name}' in {archive_path}: {exc}")
+                        warnings.append(f"Failed to extract ZIP member '{member.filename}': {exc}")
+        else:
+            with tarfile.open(archive_path, mode="r:*") as archive:
+                members = [m for m in archive.getmembers() if m.isfile()]
+                if not members:
+                    warnings.append(f"Archive {archive_path.name} appears to be empty or contains only directories.")
+                for member in members:
+                    if member.issym() or member.islnk():
+                        continue
+                    destination = _safe_member_destination(target_dir, member.name)
+                    if destination is None:
+                        warnings.append(f"Skipped unsafe TAR member '{member.name}' in {archive_path.name}.")
+                        continue
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    source = archive.extractfile(member)
+                    if source:
+                        try:
+                            with source, destination.open("wb") as sink:
+                                shutil.copyfileobj(source, sink)
+                            extracted.append((destination, member.name))
+                        except Exception as exc:
+                            warnings.append(f"Failed to extract TAR member '{member.name}': {exc}")
     except Exception as exc:
-        warnings.append(f"Failed to extract archive {archive_path}: {exc}")
+        warnings.append(f"Archive Error: Could not read {archive_path.name} ({exc})")
+
+    if not extracted and not warnings:
+         warnings.append(f"Archive {archive_path.name} was read but no files were successfully extracted.")
+         
     return extracted, warnings
 
 
@@ -140,7 +140,7 @@ def _expand_input_files(
 def collect_artifacts(input_paths: Sequence[Path]) -> tuple[list[TimelineEvent], list[str], list[str]]:
     events: list[TimelineEvent] = []
     warnings: list[str] = []
-    extract_root = Path(tempfile.gettempdir()) / "forensync_extracts" / uuid4().hex
+    extract_root = (Path(tempfile.gettempdir()) / "forensync_extracts" / uuid4().hex).resolve()
     extract_root.mkdir(parents=True, exist_ok=True)
     try:
         files = discover_files(input_paths)
