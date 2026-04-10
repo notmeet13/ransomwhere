@@ -58,6 +58,11 @@ class TimelineResponse(BaseModel):
     anomalies: list[str]
     summary_md: str
 
+@app.get("/api/health")
+@app.get("/health")
+async def healthcheck() -> dict[str, str]:
+    return {"status": "ok"}
+
 @app.post("/api/upload", response_model=TimelineResponse)
 @app.post("/upload", response_model=TimelineResponse)
 async def upload_artefacts(files: list[UploadFile] = File(...), case_name: str = "New Case"):
