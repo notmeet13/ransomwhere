@@ -58,6 +58,7 @@ class TimelineResponse(BaseModel):
     summary_md: str
 
 @app.post("/api/upload", response_model=TimelineResponse)
+@app.post("/upload", response_model=TimelineResponse)
 async def upload_artefacts(files: list[UploadFile] = File(...), case_name: str = "New Case"):
     case_id = str(uuid.uuid4())
     case_dir = UPLOAD_DIR / case_id

@@ -13,26 +13,17 @@
       }
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "api/index.py"
+      "src": "/api/(.*)",
+      "dest": "/api/index.py"
     },
     {
-      "source": "/favicon.png",
-      "destination": "ForenSync/frontend/favicon.png"
+      "handle": "filesystem"
     },
     {
-      "source": "/logo.png",
-      "destination": "ForenSync/frontend/logo.png"
-    },
-    {
-      "source": "/assets/(.*)",
-      "destination": "ForenSync/frontend/assets/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "ForenSync/frontend/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
