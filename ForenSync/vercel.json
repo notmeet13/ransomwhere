@@ -23,6 +23,10 @@
       "destination": "ForenSync/frontend/favicon.png"
     },
     {
+      "source": "/logo.png",
+      "destination": "ForenSync/frontend/logo.png"
+    },
+    {
       "source": "/assets/(.*)",
       "destination": "ForenSync/frontend/assets/$1"
     },

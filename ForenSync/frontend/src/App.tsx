@@ -53,7 +53,7 @@ function LandingPage({ onUpload }: { onUpload: (fd: FormData) => void }) {
         className="max-w-2xl w-full glass p-12 rounded-lg space-y-12 relative text-center"
       >
         <div className="space-y-4 pb-8 border-b">
-          <h1 className="text-6xl font-serif tracking-tight text-slate-200">ForenSync</h1>
+          <img src="/logo.png" alt="ForenSync" className="h-44 mx-auto mb-4" />
           <p className="text-slate-500 font-mono text-sm uppercase tracking-[0.3em]">Temporal Evidence Normalization</p>
         </div>
         <div className="space-y-6 pt-4">
@@ -146,7 +146,7 @@ export default function App() {
       {/* NAV */}
       <nav className="header-nav grid-area-nav">
         <div className="flex items-center gap-6 w-[280px]">
-          <span className="font-serif font-black text-2xl tracking-tighter text-slate-200">ForenSync</span>
+          <img src="/logo.png" alt="ForenSync" className="h-10" />
           <div className="h-6 w-[1px] bg-border" />
         </div>
 
