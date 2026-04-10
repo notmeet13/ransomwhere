@@ -123,17 +123,31 @@ export default function App() {
     });
   }, [data, search, selectedSource]);
 
+  const watermark = (
+    <div className="fixed bottom-6 right-8 z-[100] pointer-events-none select-none text-right">
+      <p className="text-[9px] font-mono text-slate-500 uppercase tracking-[0.3em] opacity-40">
+        Investigation Authored By
+      </p>
+      <p className="text-[11px] font-serif font-bold text-slate-400 uppercase tracking-widest">
+        Team RansomWhere? | {new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+      </p>
+    </div>
+  );
+
   if (!data && !loading) {
     return (
-      <LandingPage
-        onUpload={(formData) => {
-          setLoading(true);
-          axios.post(`${API_BASE}/api/upload`, formData).then(res => {
-            setData(res.data);
-            setLoading(false);
-          }).catch(() => setLoading(false));
-        }}
-      />
+      <>
+        <LandingPage
+          onUpload={(formData) => {
+            setLoading(true);
+            axios.post(`${API_BASE}/api/upload`, formData).then(res => {
+              setData(res.data);
+              setLoading(false);
+            }).catch(() => setLoading(false));
+          }}
+        />
+        {watermark}
+      </>
     );
   }
 
@@ -141,6 +155,7 @@ export default function App() {
 
   return (
     <div className={`dashboard-grid ${selectedEvent ? 'has-detail' : ''} bg-slate-950`}>
+      {watermark}
       <div className="bg-vignette" />
 
       {/* NAV */}
