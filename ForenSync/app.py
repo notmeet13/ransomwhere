@@ -90,7 +90,10 @@ async def upload_artefacts(files: list[UploadFile] = File(...), case_name: str =
         saved_paths.append(file_path)
     
     try:
-        raw_events, parser_warnings, scanned_files = collect_artifacts(saved_paths)
+        raw_events, parser_warnings, scanned_files = collect_artifacts(saved_paths, extract_root=case_dir)
+        
+        # Add diagnostics in case of issues
+        parser_warnings.append(f"Ingestion Trace: {len(saved_paths)} uploaded -> {len(scanned_files)} identifiable items scanned.")
         
         if duplicates_found:
             parser_warnings.append(f"Deduplication: Skipped {len(duplicates_found)} identical file(s) ({', '.join(duplicates_found[:5])}{'...' if len(duplicates_found) > 5 else ''})")

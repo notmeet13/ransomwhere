@@ -144,10 +144,19 @@ def _expand_input_files(
     return expanded, warnings
 
 
-def collect_artifacts(input_paths: Sequence[Path]) -> tuple[list[TimelineEvent], list[str], list[str]]:
+def collect_artifacts(
+    input_paths: Sequence[Path],
+    extract_root: Path | None = None
+) -> tuple[list[TimelineEvent], list[str], list[str]]:
     events: list[TimelineEvent] = []
     warnings: list[str] = []
-    extract_root = (Path(tempfile.gettempdir()) / "forensync_extracts" / uuid4().hex).resolve()
+    
+    # Use provided extract_root or fallback to temp dir
+    if extract_root is None:
+        extract_root = (Path(tempfile.gettempdir()) / "forensync_extracts" / uuid4().hex).resolve()
+    else:
+        extract_root = (extract_root / "extracts" / uuid4().hex).resolve()
+        
     extract_root.mkdir(parents=True, exist_ok=True)
     try:
         files = discover_files(input_paths)
