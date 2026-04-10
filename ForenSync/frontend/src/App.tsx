@@ -123,31 +123,17 @@ export default function App() {
     });
   }, [data, search, selectedSource]);
 
-  const watermark = (
-    <div className="fixed bottom-4 left-0 right-0 z-[100] flex flex-col items-center pointer-events-none select-none opacity-60 pointer-events-none text-center px-4 w-full">
-      <p className="text-[8px] font-sans font-bold text-slate-500 uppercase tracking-[0.2em] mb-0.5 w-full">
-        © 2026 Team RansomWhere?. All Rights Reserved.
-      </p>
-      <p className="text-[7px] font-sans text-slate-400 uppercase tracking-widest w-full">
-        Temporal Evidence Normalization Platform | Track 3: Cybersecurity | {new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
-      </p>
-    </div>
-  );
-
   if (!data && !loading) {
     return (
-      <>
-        <LandingPage
-          onUpload={(formData) => {
-            setLoading(true);
-            axios.post(`${API_BASE}/api/upload`, formData).then(res => {
-              setData(res.data);
-              setLoading(false);
-            }).catch(() => setLoading(false));
-          }}
-        />
-        {watermark}
-      </>
+      <LandingPage
+        onUpload={(formData) => {
+          setLoading(true);
+          axios.post(`${API_BASE}/api/upload`, formData).then(res => {
+            setData(res.data);
+            setLoading(false);
+          }).catch(() => setLoading(false));
+        }}
+      />
     );
   }
 
@@ -155,7 +141,6 @@ export default function App() {
 
   return (
     <div className={`dashboard-grid ${selectedEvent ? 'has-detail' : ''} bg-slate-950`}>
-      {watermark}
       <div className="bg-vignette" />
 
       {/* NAV */}
