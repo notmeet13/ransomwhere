@@ -2,15 +2,22 @@ from __future__ import annotations
 
 import html
 import json
+import shutil
+import tarfile
+import zipfile
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Iterable, Sequence
+from uuid import uuid4
 
 from engine.models import TimelineEvent
 from parsers.browser_parser import parse_browser_history
 from parsers.event_log_parser import parse_event_log
 from parsers.file_system_parser import parse_prefetch_file, parse_registry_export
 from parsers.generic_parser import parse_csv_file, parse_log_file
+
+
+ARCHIVE_EXTENSIONS = (".zip", ".tar", ".tar.gz", ".tgz")
 
 
 def discover_files(input_paths: Sequence[Path]) -> list[Path]:
@@ -25,45 +32,157 @@ def discover_files(input_paths: Sequence[Path]) -> list[Path]:
     return sorted(discovered)
 
 
+def _is_supported_archive(path: Path) -> bool:
+    lowered = path.name.lower()
+    return lowered.endswith(ARCHIVE_EXTENSIONS)
+
+
+def _safe_member_destination(extract_root: Path, member_name: str) -> Path | None:
+    if not member_name:
+        return None
+    candidate = Path(member_name)
+    if candidate.is_absolute() or any(part == ".." for part in candidate.parts):
+        return None
+    destination = (extract_root / candidate).resolve()
+    root_resolved = extract_root.resolve()
+    if destination == root_resolved or root_resolved in destination.parents:
+        return destination
+    return None
+
+
+def _extract_archive(
+    archive_path: Path,
+    extract_root: Path,
+) -> tuple[list[tuple[Path, str]], list[str]]:
+    extracted: list[tuple[Path, str]] = []
+    warnings: list[str] = []
+    archive_name = archive_path.name.lower()
+    target_dir = extract_root / f"archive_{uuid4().hex}"
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    if archive_name.endswith(".zip"):
+        try:
+            with zipfile.ZipFile(archive_path) as archive:
+                for member in archive.infolist():
+                    if member.is_dir():
+                        continue
+                    destination = _safe_member_destination(target_dir, member.filename)
+                    if destination is None:
+                        warnings.append(f"Skipped unsafe ZIP member '{member.filename}' in {archive_path}.")
+                        continue
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    try:
+                        with archive.open(member, "r") as source, destination.open("wb") as sink:
+                            shutil.copyfileobj(source, sink)
+                        extracted.append((destination, member.filename))
+                    except Exception as exc:
+                        warnings.append(f"Failed to extract ZIP member '{member.filename}' in {archive_path}: {exc}")
+        except Exception as exc:
+            warnings.append(f"Failed to extract archive {archive_path}: {exc}")
+        return extracted, warnings
+
+    try:
+        with tarfile.open(archive_path, mode="r:*") as archive:
+            for member in archive.getmembers():
+                if not member.isfile():
+                    continue
+                if member.issym() or member.islnk():
+                    warnings.append(f"Skipped TAR link member '{member.name}' in {archive_path}.")
+                    continue
+                destination = _safe_member_destination(target_dir, member.name)
+                if destination is None:
+                    warnings.append(f"Skipped unsafe TAR member '{member.name}' in {archive_path}.")
+                    continue
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                source = archive.extractfile(member)
+                if source is None:
+                    continue
+                try:
+                    with source, destination.open("wb") as sink:
+                        shutil.copyfileobj(source, sink)
+                    extracted.append((destination, member.name))
+                except Exception as exc:
+                    warnings.append(f"Failed to extract TAR member '{member.name}' in {archive_path}: {exc}")
+    except Exception as exc:
+        warnings.append(f"Failed to extract archive {archive_path}: {exc}")
+    return extracted, warnings
+
+
+def _expand_input_files(
+    files: Sequence[Path],
+    extract_root: Path,
+) -> tuple[list[tuple[Path, str]], list[str]]:
+    pending: list[tuple[Path, str | None]] = [(file_path, None) for file_path in sorted(files)]
+    expanded: list[tuple[Path, str]] = []
+    warnings: list[str] = []
+    seen_archives: set[Path] = set()
+
+    while pending:
+        file_path, display_label = pending.pop(0)
+        if _is_supported_archive(file_path):
+            archive_real_path = file_path.resolve()
+            if archive_real_path in seen_archives:
+                continue
+            seen_archives.add(archive_real_path)
+            members, extract_warnings = _extract_archive(file_path, extract_root)
+            warnings.extend(extract_warnings)
+            source_label = display_label or str(file_path)
+            for extracted_path, member_name in members:
+                pending.append((extracted_path, f"{source_label}!{member_name}"))
+            continue
+        expanded.append((file_path, display_label or str(file_path)))
+
+    expanded.sort(key=lambda item: (item[0], item[1]))
+    return expanded, warnings
+
+
 def collect_artifacts(input_paths: Sequence[Path]) -> tuple[list[TimelineEvent], list[str], list[str]]:
     events: list[TimelineEvent] = []
     warnings: list[str] = []
-    files = discover_files(input_paths)
-    scanned = [str(path) for path in files]
+    extract_root = (Path.cwd() / ".forensync_archives" / uuid4().hex).resolve()
+    extract_root.mkdir(parents=True, exist_ok=True)
+    try:
+        files = discover_files(input_paths)
+        expanded_files, expansion_warnings = _expand_input_files(files, extract_root)
+        warnings.extend(expansion_warnings)
+        scanned = [label for _, label in expanded_files]
 
-    for file_path in files:
-        suffix = file_path.suffix.lower()
-        try:
-            if file_path.name.lower().endswith(("-journal", "-wal", "-shm")):
-                continue
-            if suffix in {".db", ".sqlite", ".sqlite3", ".history"}:
-                parsed_events, parser_warnings = parse_browser_history(file_path)
-                events.extend(parsed_events)
-                warnings.extend(parser_warnings)
-            elif suffix == ".evtx":
-                parsed_events, parser_warnings = parse_event_log(file_path)
-                events.extend(parsed_events)
-                warnings.extend(parser_warnings)
-            elif suffix == ".reg":
-                parsed_events, parser_warnings = parse_registry_export(file_path)
-                events.extend(parsed_events)
-                warnings.extend(parser_warnings)
-            elif suffix == ".pf":
-                parsed_events, parser_warnings = parse_prefetch_file(file_path)
-                events.extend(parsed_events)
-                warnings.extend(parser_warnings)
-            elif suffix == ".csv":
-                parsed_events, parser_warnings = parse_csv_file(file_path)
-                events.extend(parsed_events)
-                warnings.extend(parser_warnings)
-            elif suffix == ".log" or suffix == ".txt":
-                parsed_events, parser_warnings = parse_log_file(file_path)
-                events.extend(parsed_events)
-                warnings.extend(parser_warnings)
-            else:
-                warnings.append(f"Skipped unsupported file: {file_path}")
-        except Exception as exc:
-            warnings.append(f"Failed to parse {file_path}: {exc}")
+        for file_path, display_path in expanded_files:
+            suffix = file_path.suffix.lower()
+            try:
+                if file_path.name.lower().endswith(("-journal", "-wal", "-shm")):
+                    continue
+                if suffix in {".db", ".sqlite", ".sqlite3", ".history"}:
+                    parsed_events, parser_warnings = parse_browser_history(file_path)
+                    events.extend(parsed_events)
+                    warnings.extend(parser_warnings)
+                elif suffix == ".evtx":
+                    parsed_events, parser_warnings = parse_event_log(file_path)
+                    events.extend(parsed_events)
+                    warnings.extend(parser_warnings)
+                elif suffix == ".reg":
+                    parsed_events, parser_warnings = parse_registry_export(file_path)
+                    events.extend(parsed_events)
+                    warnings.extend(parser_warnings)
+                elif suffix == ".pf":
+                    parsed_events, parser_warnings = parse_prefetch_file(file_path)
+                    events.extend(parsed_events)
+                    warnings.extend(parser_warnings)
+                elif suffix == ".csv":
+                    parsed_events, parser_warnings = parse_csv_file(file_path)
+                    events.extend(parsed_events)
+                    warnings.extend(parser_warnings)
+                elif suffix == ".log" or suffix == ".txt":
+                    parsed_events, parser_warnings = parse_log_file(file_path)
+                    events.extend(parsed_events)
+                    warnings.extend(parser_warnings)
+                else:
+                    warnings.append(f"Skipped unsupported file: {display_path}")
+            except Exception as exc:
+                warnings.append(f"Failed to parse {display_path}: {exc}")
+    finally:
+        shutil.rmtree(extract_root, ignore_errors=True)
+        shutil.rmtree(extract_root.parent, ignore_errors=True)
 
     events.sort(key=lambda item: (item.timestamp_unix, item.timestamp_utc, item.source_type))
     return events, warnings, scanned
