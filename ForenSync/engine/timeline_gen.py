@@ -41,13 +41,20 @@ def _is_supported_archive(path: Path) -> bool:
 def _safe_member_destination(extract_root: Path, member_name: str) -> Path | None:
     if not member_name:
         return None
-    candidate = Path(member_name)
+    # Normalize backslashes for cross-platform compatibility
+    normalized_name = member_name.replace("\\", "/")
+    candidate = Path(normalized_name)
     if candidate.is_absolute() or any(part == ".." for part in candidate.parts):
         return None
-    destination = (extract_root / candidate).resolve()
-    root_resolved = extract_root.resolve()
-    if destination == root_resolved or root_resolved in destination.parents:
-        return destination
+    
+    # We want to ensure 'destination' is inside 'extract_root'
+    # Use os.path.abspath to avoid some Path.resolve() quirks on certain OSs
+    import os
+    abs_root = os.path.abspath(str(extract_root))
+    abs_dest = os.path.abspath(str(extract_root / candidate))
+    
+    if abs_dest.startswith(abs_root):
+        return Path(abs_dest)
     return None
 
 
