@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import csv
 import re
-from datetime import UTC, datetime
+from datetime import UTC
 from pathlib import Path
 from dateutil import parser as date_parser
 
@@ -10,10 +10,28 @@ from engine.models import TimelineEvent, make_event
 
 # Common regex patterns for log timestamps
 TIMESTAMP_PATTERNS = [
-    r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}", # 2023-01-01 12:00:00 or ISO
-    r"^[A-Z][a-z]{2} \d{2} \d{2}:\d{2}:\d{2}",  # Jan 01 12:00:00 (Syslog)
-    r"^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}",    # 01/01/2023 12:00:00
+    r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?(?:Z|[+-]\d{2}:?\d{2})?",
+    r"^[A-Z][a-z]{2} +\d{1,2} +\d{2}:\d{2}:\d{2}",
+    r"^\d{2}/\d{2}/\d{4} +\d{2}:\d{2}:\d{2}(?:[.,]\d+)?",
 ]
+LOG_PREFIX_SEPARATORS = re.compile(r"^[\s\-\|\:\,\.\[\]\(\)]+")
+
+
+def _strip_timestamp_prefix(line: str) -> str:
+    for pattern in TIMESTAMP_PATTERNS:
+        match = re.match(pattern, line, flags=re.IGNORECASE)
+        if not match:
+            continue
+        remainder = line[match.end():]
+        cleaned = LOG_PREFIX_SEPARATORS.sub("", remainder).strip()
+        return cleaned or line
+    return line
+
+
+def _normalize_log_message(value: str) -> str:
+    simplified = re.sub(r"[^a-z0-9]+", " ", value.lower())
+    return " ".join(simplified.split())
+
 
 def parse_csv_file(file_path: Path) -> tuple[list[TimelineEvent], list[str]]:
     events: list[TimelineEvent] = []
@@ -85,7 +103,6 @@ def parse_log_file(file_path: Path) -> tuple[list[TimelineEvent], list[str]]:
             
             # Try to extract timestamp from the beginning of the line
             dt = None
-            found_ts = None
             
             # Fuzzy match first 30 chars
             ts_candidate = line[:40]
@@ -102,9 +119,16 @@ def parse_log_file(file_path: Path) -> tuple[list[TimelineEvent], list[str]]:
                 if dt.tzinfo is None:
                     dt = dt.replace(tzinfo=UTC)
                 
-                # Title is the first bit of text after the timestamp or the whole line
+                # Keep a semantic message fingerprint so duplicated log text can merge cleanly.
                 description = line
                 title = "Sequential Log Entry"
+                log_message = _strip_timestamp_prefix(line)
+                normalized_message = _normalize_log_message(log_message) or _normalize_log_message(line)
+                dedupe_key = (
+                    f"log_message:{normalized_message}"
+                    if normalized_message
+                    else f"log_line:{file_path.name}:{line_idx}"
+                )
                 
                 events.append(
                     make_event(
@@ -114,12 +138,15 @@ def parse_log_file(file_path: Path) -> tuple[list[TimelineEvent], list[str]]:
                         source_file=str(file_path),
                         title=title,
                         description=description,
-                        dedupe_key=f"{file_path.name}|{line_idx}",
+                        dedupe_key=dedupe_key,
                         parser="generic_log_parser",
                         confidence=0.5,
                         fidelity_rank=35,
                         tags=["log", "generic"],
-                        metadata={"line_number": line_idx},
+                        metadata={
+                            "line_number": line_idx,
+                            "log_message": log_message,
+                        },
                         raw_timestamp="extracted_from_line"
                     )
                 )

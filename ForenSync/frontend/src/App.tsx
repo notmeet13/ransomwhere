@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import axios from 'axios';
 import {
   Upload, Search, Download,
@@ -39,6 +39,8 @@ interface CaseData {
   anomalies: string[];
   summary_md: string;
 }
+
+type EventNotes = Record<string, string>;
 
 /** 
  * HOMEPAGE / LANDING AREA
@@ -114,16 +116,58 @@ export default function App() {
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [activeTab, setActiveTab] = useState<'timeline' | 'insights'>('timeline');
   const [showExport, setShowExport] = useState(false);
+  const [eventNotes, setEventNotes] = useState<EventNotes>({});
+  const notesStorageKey = useMemo(
+    () => (data?.case_name ? `forensync-event-notes:${data.case_name}` : ''),
+    [data?.case_name]
+  );
+
+  useEffect(() => {
+    if (!notesStorageKey) {
+      setEventNotes({});
+      return;
+    }
+    try {
+      const raw = localStorage.getItem(notesStorageKey);
+      setEventNotes(raw ? JSON.parse(raw) : {});
+    } catch {
+      setEventNotes({});
+    }
+  }, [notesStorageKey]);
+
+  useEffect(() => {
+    if (!notesStorageKey) return;
+    if (!Object.keys(eventNotes).length) {
+      localStorage.removeItem(notesStorageKey);
+      return;
+    }
+    localStorage.setItem(notesStorageKey, JSON.stringify(eventNotes));
+  }, [eventNotes, notesStorageKey]);
+
+  const getEventNote = (eventId: string): string => eventNotes[eventId] || '';
+  const setEventNote = (eventId: string, nextNote: string) => {
+    setEventNotes((previous) => {
+      const updated = { ...previous };
+      if (nextNote.trim()) {
+        updated[eventId] = nextNote;
+      } else {
+        delete updated[eventId];
+      }
+      return updated;
+    });
+  };
+  const annotatedEventCount = useMemo(() => Object.keys(eventNotes).length, [eventNotes]);
 
   const filteredEvents = useMemo(() => {
     if (!data) return [];
     return data.events.filter(e => {
-      const haystack = `${e.title} ${e.description} ${e.source_file} ${e.source_type} ${Object.values(e.metadata).join(' ')}`.toLowerCase();
+      const noteText = getEventNote(e.event_id);
+      const haystack = `${e.title} ${e.description} ${e.source_file} ${e.source_type} ${Object.values(e.metadata).join(' ')} ${noteText}`.toLowerCase();
       const matchSearch = haystack.includes(search.toLowerCase());
       const matchSource = selectedSource === 'all' || e.source_type === selectedSource;
       return matchSearch && matchSource;
     });
-  }, [data, search, selectedSource]);
+  }, [data, search, selectedSource, eventNotes]);
 
   if (!data && !loading) {
     return (
@@ -239,33 +283,33 @@ export default function App() {
                 <ExportOption
                   label="Structured Hierarchical (JSON)"
                   desc="Full fidelity raw data export"
-                  onClick={() => exportJSON(data?.events)}
+                  onClick={() => exportJSON(data?.events, eventNotes, data?.case_name)}
                 />
                 <ExportOption
                   label="Relational Database (SQLite)"
                   desc="Indexed evidence for SQL queries"
-                  onClick={() => exportSQLite(data?.events)}
+                  onClick={() => exportSQLite(data?.events, eventNotes)}
                 />
                 <ExportOption
                   label="Forensic Spreadsheet (XLSX)"
                   desc="Excel formatted with data types"
-                  onClick={() => exportXLSX(data?.events)}
+                  onClick={() => exportXLSX(data?.events, eventNotes)}
                 />
                 <ExportOption
                   label="Flat Timeline (CSV)"
                   desc="Universal interoperable format"
-                  onClick={() => exportCSV(data?.events)}
+                  onClick={() => exportCSV(data?.events, eventNotes)}
                 />
                 <ExportOption
                   label="Investigative Report (PDF)"
                   desc="Visual read-only chronology"
-                  onClick={() => exportPDF(data?.events, data?.summary_md)}
+                  onClick={() => exportPDF(data?.events, data?.summary_md, eventNotes)}
                 />
               </div>
 
               <div className="mt-8 pt-4 border-t border-border flex justify-between items-center text-[9px] text-slate-400 uppercase font-mono tracking-widest">
                 <span>Total records: {data?.events.length}</span>
-                <span>Case File: {new Date().getFullYear()}-{Math.random().toString(36).substring(7).toUpperCase()}</span>
+                <span>Annotated: {annotatedEventCount}</span>
               </div>
             </motion.div>
           </div>
@@ -360,6 +404,17 @@ export default function App() {
                   <div className="flex justify-between items-center"><span className="text-xs italic text-slate-500">UTC Time</span><span className="text-sm font-mono text-teal-500 font-bold">{selectedEvent.timestamp_utc}</span></div>
                   <div className="flex justify-between items-center"><span className="text-xs italic text-slate-500">Unix</span><span className="text-xs font-mono text-slate-400">{selectedEvent.timestamp_unix}</span></div>
                 </div>
+              </section>
+
+              <section className="space-y-4">
+                <label className="text-[10px] font-black text-slate-500 tracking-widest uppercase border-b pb-2 block">Investigator Annotation</label>
+                <textarea
+                  value={getEventNote(selectedEvent.event_id)}
+                  onChange={(e) => setEventNote(selectedEvent.event_id, e.target.value)}
+                  placeholder="Add analyst notes for this timeline event..."
+                  className="w-full min-h-24 text-xs font-mono text-slate-700 bg-[#f8f6f2] p-3 border border-[#e7e1d9] rounded-sm leading-relaxed"
+                />
+                <p className="text-[10px] text-slate-400 font-mono uppercase">Saved locally and included in exports.</p>
               </section>
 
               <section className="space-y-4">
@@ -488,9 +543,24 @@ function ExportOption({ label, desc, onClick }: { label: string, desc: string, o
   );
 }
 
-const exportJSON = (events?: TimelineEvent[]) => {
+type ExportTimelineEvent = TimelineEvent & { investigator_note?: string };
+
+const attachNotesToEvents = (events: TimelineEvent[], notes: EventNotes = {}): ExportTimelineEvent[] => {
+  return events.map((event) => {
+    const note = (notes[event.event_id] || '').trim();
+    return note ? { ...event, investigator_note: note } : { ...event };
+  });
+};
+
+const exportJSON = (events?: TimelineEvent[], notes: EventNotes = {}, caseName?: string) => {
   if (!events) return;
-  const blob = new Blob([JSON.stringify(events, null, 2)], { type: 'application/json' });
+  const payload = {
+    case_name: caseName || 'ForenSync Case',
+    exported_at_utc: new Date().toISOString(),
+    annotated_event_count: Object.keys(notes).length,
+    events: attachNotesToEvents(events, notes),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -498,7 +568,7 @@ const exportJSON = (events?: TimelineEvent[]) => {
   link.click();
 };
 
-const exportCSV = (events?: TimelineEvent[]) => {
+const exportCSV = (events?: TimelineEvent[], notes: EventNotes = {}) => {
   if (!events) return;
   const worksheet = XLSX.utils.json_to_sheet(events.map(e => ({
     timestamp: e.timestamp_utc,
@@ -507,7 +577,8 @@ const exportCSV = (events?: TimelineEvent[]) => {
     title: e.title,
     description: e.description,
     confidence: e.confidence,
-    source_file: e.source_file
+    source_file: e.source_file,
+    investigator_note: notes[e.event_id] || ''
   })));
   const csv = XLSX.utils.sheet_to_csv(worksheet);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -518,7 +589,7 @@ const exportCSV = (events?: TimelineEvent[]) => {
   link.click();
 };
 
-const exportXLSX = (events?: TimelineEvent[]) => {
+const exportXLSX = (events?: TimelineEvent[], notes: EventNotes = {}) => {
   if (!events) return;
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.json_to_sheet(events.map(e => ({
@@ -530,13 +601,14 @@ const exportXLSX = (events?: TimelineEvent[]) => {
     Confidence: e.confidence,
     Fidelity: e.fidelity_rank,
     Source_Path: e.source_file,
+    Investigator_Note: notes[e.event_id] || '',
     Metadata: JSON.stringify(e.metadata)
   })));
   XLSX.utils.book_append_sheet(wb, ws, "Timeline");
   XLSX.writeFile(wb, `forensync_report_${new Date().getTime()}.xlsx`);
 };
 
-const exportPDF = (events?: TimelineEvent[], summary?: string) => {
+const exportPDF = (events?: TimelineEvent[], summary?: string, notes: EventNotes = {}) => {
   if (!events) return;
   const doc = new jsPDF();
 
@@ -567,7 +639,7 @@ const exportPDF = (events?: TimelineEvent[], summary?: string) => {
       e.timestamp_utc.replace('T', '\n'),
       e.source_type.toUpperCase(),
       e.title,
-      e.description
+      notes[e.event_id]?.trim() ? `${e.description}\nNote: ${notes[e.event_id]}` : e.description
     ]),
     headStyles: { fillColor: [120, 53, 15] },
     theme: 'grid',
@@ -577,7 +649,7 @@ const exportPDF = (events?: TimelineEvent[], summary?: string) => {
   doc.save(`forensync_investigation_${new Date().getTime()}.pdf`);
 };
 
-const exportSQLite = async (events?: TimelineEvent[]) => {
+const exportSQLite = async (events?: TimelineEvent[], notes: EventNotes = {}) => {
   if (!events) return;
   try {
     const SQL = await initSqlJs({
@@ -596,12 +668,13 @@ const exportSQLite = async (events?: TimelineEvent[]) => {
         description TEXT,
         confidence REAL,
         source_file TEXT,
-        metadata_json TEXT
+        metadata_json TEXT,
+        investigator_note TEXT
       )
     `);
 
     const stmt = db.prepare(`
-      INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?)
+      INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?)
     `);
 
     events.forEach(e => {
@@ -615,7 +688,8 @@ const exportSQLite = async (events?: TimelineEvent[]) => {
         e.description,
         e.confidence,
         e.source_file,
-        JSON.stringify(e.metadata)
+        JSON.stringify(e.metadata),
+        notes[e.event_id] || ''
       ]);
     });
     stmt.free();
