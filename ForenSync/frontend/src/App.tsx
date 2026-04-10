@@ -173,7 +173,7 @@ export default function App() {
           </button>
           <button
             onClick={() => setData(null)}
-            className="px-5 py-2 text-[10px] font-black uppercase tracking-widest border border-slate-300 hover:bg-slate-100 transition-all rounded-sm"
+            className="px-5 py-2 text-[10px] font-black uppercase tracking-widest border border-slate-300 hover:bg-slate-100 transition-all rounded-lg"
           >
             Close Case
           </button>
@@ -277,7 +277,7 @@ export default function App() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
-              className={`px-10 py-5 text-[10px] font-black tracking-[0.2em] uppercase transition-all relative border-none ${activeTab === tab ? 'text-teal-500' : 'text-slate-400'
+              className={`px-8 py-3 mx-2 my-2 text-[10px] font-black tracking-[0.2em] uppercase transition-all relative rounded-lg border-none ${activeTab === tab ? 'bg-teal-500/10 text-teal-500' : 'text-slate-400 hover:bg-slate-50'
                 }`}
             >
               {tab}

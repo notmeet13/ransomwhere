@@ -328,6 +328,8 @@ button {
   border: 1px solid var(--border);
   background: #f2f2f2;
   color: var(--text-primary);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
 }
 
 button:hover {
