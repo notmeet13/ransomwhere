@@ -148,7 +148,7 @@ export default function App() {
       {/* NAV */}
       <nav className="header-nav grid-area-nav">
         <div className="flex items-center gap-2 pl-6">
-          <img src="/logo.png" alt="ForenSync" className="h-5" />
+          <span className="font-serif font-black text-2xl tracking-tighter text-slate-200">ForenSync</span>
           <div className="h-4 w-[1px] bg-border mx-1" />
         </div>
 
