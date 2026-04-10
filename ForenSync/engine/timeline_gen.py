@@ -194,6 +194,15 @@ def collect_artifacts(
                     events.extend(parsed_events)
                     warnings.extend(parser_warnings)
                 else:
+                    # Fallback: Try to parse as generic log if no extension matches
+                    try:
+                        p_events, p_warns = parse_log_file(file_path)
+                        if p_events:
+                            events.extend(p_events)
+                            warnings.extend(p_warns)
+                            continue
+                    except:
+                        pass
                     warnings.append(f"Skipped unsupported file: {display_path}")
             except Exception as exc:
                 warnings.append(f"Failed to parse {display_path}: {exc}")
