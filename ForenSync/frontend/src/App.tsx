@@ -124,12 +124,12 @@ export default function App() {
   }, [data, search, selectedSource]);
 
   const watermark = (
-    <div className="fixed bottom-6 right-8 z-[100] pointer-events-none select-none text-right">
-      <p className="text-[9px] font-mono text-slate-500 uppercase tracking-[0.3em] opacity-40">
-        Investigation Authored By
+    <div className="fixed bottom-6 left-0 right-0 z-[100] flex flex-col items-center justify-center pointer-events-none select-none opacity-40 text-center">
+      <p className="text-[10px] font-sans font-bold text-slate-500 uppercase tracking-[0.2em] mb-1">
+        © 2026 Team RansomWhere?. All Rights Reserved.
       </p>
-      <p className="text-[11px] font-serif font-bold text-slate-400 uppercase tracking-widest">
-        Team RansomWhere? | {new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+      <p className="text-[9px] font-sans text-slate-400 uppercase tracking-widest">
+        Temporal Evidence Normalization Platform | Track 3: Cybersecurity | {new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
       </p>
     </div>
   );
