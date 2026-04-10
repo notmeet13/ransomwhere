@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
   Upload, Search, Download,
   ChevronRight, X, Globe, Shield, Database, Zap, FileSpreadsheet, FileText,
-  Copy, Check
+  Copy, Check, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -254,6 +254,22 @@ export default function App() {
               ))}
             </div>
           </section>
+
+          {data?.warnings && data.warnings.length > 0 && (
+            <section className="space-y-4">
+              <h3 className="text-[10px] font-black text-amber-600 tracking-widest uppercase border-b border-amber-200 pb-2 flex items-center gap-2">
+                <AlertCircle size={12} />
+                Ingestion Warnings
+              </h3>
+              <div className="space-y-2">
+                {data.warnings.map((w, i) => (
+                  <div key={i} className="text-[10px] text-amber-700 bg-amber-50/50 p-2 rounded border border-amber-100 font-mono leading-relaxed">
+                    {w}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         <div className="mt-auto pt-8 border-t border-border">

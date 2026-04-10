@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import shutil
 import uuid
 from pathlib import Path
@@ -65,14 +66,30 @@ async def upload_artefacts(files: list[UploadFile] = File(...), case_name: str =
     case_dir.mkdir(parents=True, exist_ok=True)
     
     saved_paths = []
+    seen_hashes = set()
+    duplicates_found = []
+
     for file in files:
+        # Read content to calculate hash for deduplication
+        content = await file.read()
+        file_hash = hashlib.sha256(content).hexdigest()
+
+        if file_hash in seen_hashes:
+            duplicates_found.append(file.filename)
+            continue
+
+        seen_hashes.add(file_hash)
         file_path = case_dir / file.filename
         with file_path.open("wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            buffer.write(content)
         saved_paths.append(file_path)
     
     try:
         raw_events, parser_warnings, scanned_files = collect_artifacts(saved_paths)
+        
+        if duplicates_found:
+            parser_warnings.append(f"Deduplication: Skipped {len(duplicates_found)} identical file(s) ({', '.join(duplicates_found[:5])}{'...' if len(duplicates_found) > 5 else ''})")
+            
         deduped_events = deduplicate_events(raw_events)
         
         anomalies = find_event_outliers(deduped_events)
