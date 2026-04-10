@@ -20,11 +20,11 @@
     },
     {
       "source": "/assets/(.*)",
-      "destination": "ForenSync/frontend/dist/assets/$1"
+      "destination": "ForenSync/frontend/assets/$1"
     },
     {
       "source": "/(.*)",
-      "destination": "ForenSync/frontend/dist/index.html"
+      "destination": "ForenSync/frontend/index.html"
     }
   ]
 }
