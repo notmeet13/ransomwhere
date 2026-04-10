@@ -50,10 +50,12 @@ function LandingPage({ onUpload }: { onUpload: (fd: FormData) => void }) {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-2xl w-full glass p-12 rounded-lg space-y-12 relative text-center"
+        className="max-w-2xl w-full glass p-12 rounded-lg space-y-12 relative text-center pt-24 overflow-hidden"
       >
+        <div className="absolute top-8 left-8">
+           <img src="/logo.png" alt="ForenSync" className="h-10 opacity-70" />
+        </div>
         <div className="space-y-4 pb-8 border-b">
-          <img src="/logo.png" alt="ForenSync" className="w-[80%] mx-auto mb-6" />
           <p className="text-slate-500 font-mono text-sm uppercase tracking-[0.3em]">Temporal Evidence Normalization</p>
         </div>
         <div className="space-y-6 pt-4">
@@ -145,9 +147,9 @@ export default function App() {
 
       {/* NAV */}
       <nav className="header-nav grid-area-nav">
-        <div className="flex items-center gap-4 pl-6">
-          <img src="/logo.png" alt="ForenSync" className="h-7" />
-          <div className="h-6 w-[1px] bg-border mx-2" />
+        <div className="flex items-center gap-2 pl-6">
+          <img src="/logo.png" alt="ForenSync" className="h-5" />
+          <div className="h-4 w-[1px] bg-border mx-1" />
         </div>
 
         <div className="flex-1 flex justify-center">
